@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Operaciones de Conjuntos Difusos</title>
+
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Operaciones de Conjuntos Difusos</h2>
+
+<p>
+Modifica los controles para observar cómo cambian los conjuntos difusos
+y sus operaciones (unión, intersección y complemento).
+</p>
+
+<!-- Slider A -->
+<div class="slider-container">
+    <label>
+        Pico del conjunto A:
+        <span id="aValue">4</span>
+    </label><br>
+    <input type="range" id="aCenter" min="2" max="8" step="0.1" value="4">
+</div>
+
+<!-- Slider B -->
+<div class="slider-container">
+    <label>
+        Pico del conjunto B:
+        <span id="bValue">6</span>
+    </label><br>
+    <input type="range" id="bCenter" min="2" max="8" step="0.1" value="6">
+</div>
+
+<!-- Gráfica -->
+<div id="grafica" style="width:100%; height:500px;"></div>
+
+<script>
+    // Dominio
+    const x = [];
+    for (let i = 0; i <= 10; i += 0.1) {
+        x.push(i);
+    }
+
+    // Función de pertenencia triangular
+    function triangular(x, center, width = 2) {
+        return Math.max(0, 1 - Math.abs(x - center) / width);
+    }
+
+    function actualizarGrafica() {
+        const aCenter = parseFloat(document.getElementById("aCenter").value);
+        const bCenter = parseFloat(document.getElementById("bCenter").value);
+
+        // Mostrar valores seleccionados
+        document.getElementById("aValue").textContent = aCenter;
+        document.getElementById("bValue").textContent = bCenter;
+
+        // Conjuntos difusos
+        const A = x.map(v => triangular(v, aCenter));
+        const B = x.map(v => triangular(v, bCenter));
+
+        // Operaciones
+        const union = A.map((v, i) => Math.max(v, B[i]));
+        const inter = A.map((v, i) => Math.min(v, B[i]));
+        const compA = A.map(v => 1 - v);
+
+        const data = [
+            { x, y: A, mode: 'lines', name: 'Conjunto A' },
+            { x, y: B, mode: 'lines', name: 'Conjunto B' },
+            { x, y: union, mode: 'lines', name: 'A ? B', line: { dash: 'dash' } },
+            { x, y: inter, mode: 'lines', name: 'A n B', line: { dash: 'dot' } },
+            { x, y: compA, mode: 'lines', name: '¬A', line: { dash: 'dashdot' } }
+        ];
+
+        const layout = {
+            title: 'Operaciones de Conjuntos Difusos',
+            xaxis: { title: 'Universo de discurso' },
+            yaxis: { title: 'Grado de pertenencia', range: [0, 1] }
+        };
+
+        Plotly.newPlot('grafica', data, layout);
+    }
+
+    // Eventos
+    document.getElementById("aCenter").addEventListener("input", actualizarGrafica);
+    document.getElementById("bCenter").addEventListener("input", actualizarGrafica);
+
+    // Inicializar
+    actualizarGrafica();
+</script>
+
+</body>
+</html>
